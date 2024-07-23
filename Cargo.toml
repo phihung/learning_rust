@@ -1,0 +1,11 @@
+[package]
+name = "learning"
+version = "0.1.0"
+edition = "2021"
+
+[lints.rust]
+# unused = "allow"
+
+[dependencies]
+serde_json = "1.0.120"
+tailcall = "1.0.1"

@@ -1,0 +1,92 @@
+// https://leetcode.com/problems/create-binary-tree-from-descriptions/description/
+
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+impl Solution {
+    pub fn create_binary_tree(descriptions: Vec<Vec<i32>>) -> Option<Rc<RefCell<TreeNode>>> {
+        let mut val_to_node: HashMap<i32, Rc<RefCell<TreeNode>>> = HashMap::new();
+        let mut get_or_create = |val| match val_to_node.get(&val) {
+            Some(node) => node.clone(),
+            None => {
+                let node = Rc::new(RefCell::new(TreeNode::new(val)));
+                val_to_node.insert(val, node.clone());
+                node
+            }
+        };
+
+        for desc in &descriptions {
+            if let [v_parent, v_child, is_left] = desc[..] {
+                let n_parent = get_or_create(v_parent);
+                let n_child = get_or_create(v_child);
+                if is_left == 1 {
+                    n_parent.borrow_mut().left = Some(n_child);
+                } else {
+                    n_parent.borrow_mut().right = Some(n_child);
+                }
+            } else {
+                unreachable!()
+            }
+        }
+
+        for desc in &descriptions {
+            if let [_, v_child, _] = desc[..] {
+                val_to_node.remove(&v_child);
+            }
+        }
+
+        Some(val_to_node.values().next().unwrap().clone())
+    }
+}
+
+// ---- test ----
+
+#[test]
+fn test_solution() {
+    let func = |descriptions: &[[i32; 3]]| {
+        Solution::create_binary_tree(descriptions.iter().map(|v| v.to_vec()).collect())
+    };
+    assert_eq!(
+        func(&[
+            [20, 15, 1],
+            [20, 17, 0],
+            [50, 20, 1],
+            [50, 80, 0],
+            [80, 19, 1]
+        ]),
+        // [50, 20, 80, 15, 17, 19]
+        Some(Rc::new(RefCell::new(TreeNode {
+            val: 50,
+            left: Some(Rc::new(RefCell::new(TreeNode {
+                val: 20,
+                left: Some(Rc::new(RefCell::new(TreeNode::new(15)))),
+                right: Some(Rc::new(RefCell::new(TreeNode::new(17)))),
+            }))),
+            right: Some(Rc::new(RefCell::new(TreeNode {
+                val: 80,
+                left: Some(Rc::new(RefCell::new(TreeNode::new(19)))),
+                right: None,
+            }))),
+        })))
+    );
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct TreeNode {
+    pub val: i32,
+    pub left: Option<Rc<RefCell<TreeNode>>>,
+    pub right: Option<Rc<RefCell<TreeNode>>>,
+}
+
+impl TreeNode {
+    #[inline]
+    pub fn new(val: i32) -> Self {
+        TreeNode {
+            val,
+            left: None,
+            right: None,
+        }
+    }
+}
+
+pub struct Solution {}
