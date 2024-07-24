@@ -30,15 +30,15 @@ impl Solution {
         let mut stack = vec![];
         let mut queue = vec![(0, true, node)];
         while let Some((index, is_right, n)) = queue.pop() {
-            let n = n.borrow();
+            let mut n = n.borrow_mut();
             Self::set_or_push(&mut stack, index, is_right);
             if !process(n.val, &stack[..(index + 1)]) {
                 break;
             }
-            if let Some(n1) = n.left.clone() {
+            if let Some(n1) = n.left.take() {
                 queue.push((index + 1, false, n1));
             }
-            if let Some(n1) = n.right.clone() {
+            if let Some(n1) = n.right.take() {
                 queue.push((index + 1, true, n1));
             }
         }
@@ -67,7 +67,7 @@ impl Solution {
         for &d in &dest_path[i..] {
             out.push(if d { 'R' as u8 } else { 'L' as u8 });
         }
-        String::from_utf8(out).unwrap()
+        unsafe { String::from_utf8_unchecked(out) }
     }
 }
 

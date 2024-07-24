@@ -30,12 +30,13 @@ pub mod leetcode {
     pub mod a0282;
     pub mod a0726;
     pub mod a1255;
+    pub mod a2191;
     pub mod a2418;
 
     pub mod a1307;
 
     pub mod a0127;
-    pub mod a0212;
+    pub mod a0212_;
     pub mod a1110;
     pub mod a1380;
     pub mod a1402;
@@ -45,7 +46,7 @@ pub mod leetcode {
     pub mod a2096;
     pub mod a2196;
     pub mod a2392;
-    pub mod a2790;
+    pub mod a2709;
     pub mod a2945;
     pub mod a3139;
     pub mod utils;
