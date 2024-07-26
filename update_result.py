@@ -126,7 +126,7 @@ def to_table(outputs):
         slug = x["slug"]
         link = f"[{slug}](https://leetcode.com/problems/{slug}/)"
         runtime = x["runtimeDisplay"]
-        if (v := x["runtimePercentile"]) > 90:
+        if (v := x["runtimePercentile"]) > 90 or runtime == "1 ms":
             toptime = f'<span style="color:green;">{v:3.0f} %</span>'
         else:
             toptime = f"{v:3.0f} %"
@@ -162,8 +162,8 @@ def update_readme(table):
 
 
 if __name__ == "__main__":
-    outputs = json.load(open("data/leetcode.json"))
-    outputs = sorted(outputs, key=lambda x: -int(x["timestamp"]))
-    # outputs = get_data()
-    # Path("data/leetcode.json").write_text(json.dumps(outputs))
+    # outputs = json.load(open("data/leetcode.json"))
+    # outputs = sorted(outputs, key=lambda x: -int(x["timestamp"]))
+    outputs = get_data()
+    Path("data/leetcode.json").write_text(json.dumps(outputs))
     update_readme(to_table(outputs))

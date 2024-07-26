@@ -16,7 +16,7 @@ impl Solution {
                 }
                 chars.push(d as u8 + zero);
             }
-            out.push(String::from_utf8(chars).unwrap());
+            out.push(unsafe { String::from_utf8_unchecked(chars) });
         };
 
         Self::recursive(
@@ -64,7 +64,6 @@ impl Solution {
         *current.last_mut().unwrap() = '*' as u8;
         Self::recursive(&nums[1..], target, d, prev * mul, current, save_solution);
 
-        // ("293", 32) => ([3, 9, 2], 32) => ([3, -9], 30)
         *current.last_mut().unwrap() = '-' as u8;
         Self::recursive(
             &nums[1..],

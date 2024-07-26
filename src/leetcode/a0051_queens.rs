@@ -46,10 +46,10 @@ impl Solution {
                             stack.push(Action::Put(next_r, next_c));
                         }
                     } else {
-                        solutions.push(Self::format_output(&current));
+                        solutions.push(Self::format_output(n, current.iter().copied()));
                         if n > 1 {
-                            let symetric: Vec<usize> = current.iter().map(|x| n - 1 - x).collect();
-                            solutions.push(Self::format_output(&symetric));
+                            let symmetric = current.iter().map(|x| (n - 1 - x));
+                            solutions.push(Self::format_output(n, symmetric));
                         }
                     }
                 }
@@ -66,16 +66,12 @@ impl Solution {
         solutions
     }
 
-    fn format_output(solution: &[usize]) -> Vec<String> {
+    fn format_output(n: usize, solution: impl Iterator<Item = usize>) -> Vec<String> {
         solution
-            .iter()
-            .map(|&col| {
-                String::from_utf8(
-                    (0..solution.len())
-                        .map(|j| if j == col { b'Q' } else { b'.' })
-                        .collect(),
+            .map(|col| unsafe {
+                String::from_utf8_unchecked(
+                    (0..n).map(|j| if j == col { b'Q' } else { b'.' }).collect(),
                 )
-                .unwrap()
             })
             .collect()
     }
