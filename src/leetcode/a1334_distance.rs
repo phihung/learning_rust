@@ -47,7 +47,7 @@ pub fn floyd_warshall(n: i32, edges: Vec<Vec<i32>>, threshold: i32) -> i32 {
 
 pub fn all_point_dijkstra(n: i32, edges: Vec<Vec<i32>>, threshold: i32) -> i32 {
     let n = n as usize;
-    let graph = Graph::from_edges(n, edges.into_iter().filter(|x| x[2] <= threshold));
+    let graph = AdjGraph::from_edges(n, edges.into_iter().filter(|x| x[2] <= threshold));
     let (mut imin, mut min) = (n, i32::MAX);
     for i in (0..n).rev() {
         let cnt = graph.dijkstra(i, threshold);
@@ -61,12 +61,12 @@ pub fn all_point_dijkstra(n: i32, edges: Vec<Vec<i32>>, threshold: i32) -> i32 {
     imin as i32
 }
 
-pub struct Graph {
+pub struct AdjGraph {
     n_nodes: usize,
     adj_lists: Vec<Vec<(usize, i32)>>,
 }
 
-impl Graph {
+impl AdjGraph {
     fn from_edges(n_nodes: usize, edges: impl Iterator<Item = Vec<i32>>) -> Self {
         let mut adj_lists = vec![vec![]; n_nodes];
         for e in edges {
@@ -75,7 +75,7 @@ impl Graph {
                 adj_lists[v2 as usize].push((v1 as usize, dist));
             }
         }
-        Graph { n_nodes, adj_lists }
+        Self { n_nodes, adj_lists }
     }
 
     fn dijkstra(&self, start: usize, threshold: i32) -> i32 {

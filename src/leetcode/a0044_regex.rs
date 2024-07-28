@@ -1,6 +1,4 @@
 // https://leetcode.com/problems/wildcard-matching/description/
-use std::collections::HashSet;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Pattern<'a> {
     AnyStr(usize),
@@ -11,35 +9,123 @@ use Pattern::*;
 
 impl Solution {
     pub fn is_match(s: String, p: String) -> bool {
-        let patterns = Self::parse(&p);
-        Self::run(&patterns, &s)
+        is_match_dynamic_programming(&s, &p)
+        // NfaSolution::is_match(s, p)
     }
+}
 
-    pub fn is_match_ref(s: &str, p: &str) -> bool {
+fn is_match_dynamic_programming(s: &str, p: &str) -> bool {
+    let patterns = NfaSolution::parse(p);
+    let n = s.len();
+
+    #[derive(Debug, PartialEq)]
+    enum MatchState {
+        Once(usize),           // at index
+        All(usize),            // from index
+        Few(Vec<bool>, usize), // mask + offset
+        Fail,                  // KO
+    }
+    let mut current = MatchState::Once(0);
+    let next_pattern_is_anystr = |j: usize| {
+        if let Some(AnyStr(_)) = patterns.get(j + 1) {
+            true
+        } else {
+            false
+        }
+    };
+    for (j, x) in patterns.iter().enumerate() {
+        current = match (x, current) {
+            (AnyStr(min_len), MatchState::Once(pos)) => MatchState::All(pos + min_len),
+            (AnyChar(len), MatchState::Once(pos)) => MatchState::Once(pos + len),
+            (AnyChar(len), MatchState::Few(mask, offset)) => MatchState::Few(mask, offset + len),
+            (Exact(substr), MatchState::Once(pos)) => {
+                if pos <= s.len() && s[pos..].starts_with(substr) {
+                    MatchState::Once(pos + substr.len())
+                } else {
+                    MatchState::Fail
+                }
+            }
+            (Exact(ref substr), MatchState::All(pos)) => {
+                if pos > s.len() {
+                    MatchState::Fail
+                } else if j == patterns.len() - 1 {
+                    return pos + substr.len() <= s.len() && s.ends_with(substr);
+                } else if next_pattern_is_anystr(j) {
+                    if let Some(i) = s[pos..].find(substr) {
+                        MatchState::Once(i + pos + substr.len())
+                    } else {
+                        MatchState::Fail
+                    }
+                } else {
+                    let mut mask = vec![false; n];
+                    let mut start = pos;
+                    while let Some(i) = s[start..].find(substr) {
+                        mask[start + i] = true;
+                        start += i + 1;
+                    }
+                    MatchState::Few(mask, substr.len())
+                }
+            }
+            (Exact(substr), MatchState::Few(mut mask, offset)) => {
+                if next_pattern_is_anystr(j) {
+                    let found = (0..(n - offset - substr.len() + 1))
+                        .position(|i| mask[i] && s[i + offset..].starts_with(substr));
+                    if let Some(i) = found {
+                        MatchState::Once(i + offset + substr.len())
+                    } else {
+                        MatchState::Fail
+                    }
+                } else {
+                    for i in 0..(n - offset - substr.len() + 1) {
+                        if mask[i] && !s[i + offset..].starts_with(substr) {
+                            mask[i] = false;
+                        }
+                    }
+                    MatchState::Few(mask, offset + substr.len())
+                }
+            }
+            // (AnyStr(_), MatchState::All(_)) => unreachable!(),
+            // (AnyStr(_), MatchState::Few(_, _)) => unreachable!(),
+            // (AnyChar(_), MatchState::All(_)) => unreachable!(),
+            _ => unreachable!(),
+        };
+        if current == MatchState::Fail {
+            return false;
+        }
+    }
+    match current {
+        MatchState::Once(pos) => pos == s.len(),
+        MatchState::All(pos) => pos <= s.len(),
+        MatchState::Few(mask, offset) => offset <= s.len() && mask[s.len() - offset],
+        MatchState::Fail => false,
+    }
+}
+
+impl NfaSolution {
+    pub fn is_match(s: &str, p: &str) -> bool {
         let patterns = Self::parse(p);
         Self::run(&patterns, s)
     }
 
     fn run(nodes: &Vec<Pattern>, s: &str) -> bool {
         let chars: &[u8] = s.as_bytes();
-        let mut visited = HashSet::new();
+        let mut visited = vec![vec![false; nodes.len()]; chars.len()];
         let mut stack = vec![(0, 0)];
         while let Some((i, current_node)) = stack.pop() {
-            if visited.contains(&(i, current_node)) {
-                continue;
-            } else {
-                visited.insert((i, current_node));
-            }
             if i >= chars.len() {
                 if i == chars.len() && Self::match_empty_string(&nodes[current_node..]) {
                     return true;
                 }
                 continue;
             }
-
             if current_node >= nodes.len() {
                 continue;
             }
+            if visited[i][current_node] {
+                continue;
+            }
+            visited[i][current_node] = true;
+
             let next_node = current_node + 1;
             match nodes[current_node] {
                 AnyStr(min_len) => {
@@ -107,6 +193,7 @@ impl Solution {
 }
 
 pub struct Solution;
+pub struct NfaSolution;
 
 #[cfg(test)]
 mod tests {
@@ -115,6 +202,20 @@ mod tests {
     #[test]
     fn test_solution() {
         let func = |s: &str, p: &str| Solution::is_match(s.to_string(), p.to_string());
+        run_test(func);
+    }
+
+    #[test]
+    fn test_dp() {
+        run_test(is_match_dynamic_programming);
+    }
+
+    #[test]
+    fn test_nfa() {
+        run_test(NfaSolution::is_match);
+    }
+
+    fn run_test(func: impl Fn(&str, &str) -> bool) {
         let test = |p: &str, yes: &[&str], no: &[&str]| {
             yes.into_iter()
                 .for_each(|s| assert_eq!(func(s, p), true, "[{s}] vs {p}"));
@@ -122,6 +223,8 @@ mod tests {
                 .for_each(|s| assert_eq!(func(s, p), false, "[{s}] vs {p}"));
         };
 
+        assert!(!func("aa", "???*a?"));
+        assert!(!func("mississippi", "m??*ss*?i*pi"));
         assert_eq!(func("a", "??"), false);
 
         test("?a", &["ba", "aa"], &["", "a", "b", "ab", "aaa"]);
@@ -141,19 +244,35 @@ mod tests {
     }
 
     #[bench]
-    fn benchmark_1(b: &mut test::Bencher) {
+    fn benchmark_nfa_1(b: &mut test::Bencher) {
         let n = 2000;
         let s = create_str(&[("ab", n / 2)]);
         let p = create_str(&[("a?", n / 2 - 1), ("bb", 1)]);
-        b.iter(|| assert_eq!(Solution::is_match_ref(&s, &p), false, "{s}, {p}"));
+        b.iter(|| assert_eq!(NfaSolution::is_match(&s, &p), false, "{s}, {p}"));
     }
 
     #[bench]
-    fn benchmark_2(b: &mut test::Bencher) {
+    fn benchmark_nfa_2(b: &mut test::Bencher) {
         let n = 2000;
         let s = create_str(&[("ab", n / 2)]);
         let p = create_str(&[("a?", n / 2 - 1), ("bb", 1)]);
-        b.iter(|| assert_eq!(Solution::is_match_ref(&s, &p), false, "{s}, {p}"));
+        b.iter(|| assert_eq!(NfaSolution::is_match(&s, &p), false, "{s}, {p}"));
+    }
+
+    #[bench]
+    fn benchmark_dp_1(b: &mut test::Bencher) {
+        let n = 2000;
+        let s = create_str(&[("ab", n / 2)]);
+        let p = create_str(&[("a?", n / 2 - 1), ("bb", 1)]);
+        b.iter(|| assert_eq!(is_match_dynamic_programming(&s, &p), false, "{s}, {p}"));
+    }
+
+    #[bench]
+    fn benchmark_dp_2(b: &mut test::Bencher) {
+        let n = 2000;
+        let s = create_str(&[("ab", n / 2)]);
+        let p = create_str(&[("a?", n / 2 - 1), ("bb", 1)]);
+        b.iter(|| assert_eq!(is_match_dynamic_programming(&s, &p), false, "{s}, {p}"));
     }
 
     fn create_str(ls: &[(&str, usize)]) -> String {

@@ -9,7 +9,6 @@ pub mod leetcode {
     pub mod a0005;
     pub mod a0007;
     pub mod a0009;
-
     pub mod a0010_regex;
     pub mod a0011;
     pub mod a0020;
@@ -46,6 +45,7 @@ pub mod leetcode {
     pub mod a1458;
     pub mod a1503;
     pub mod a1605;
+    pub mod a2045;
     pub mod a2096;
     pub mod a2191;
     pub mod a2196;
@@ -53,6 +53,7 @@ pub mod leetcode {
     pub mod a2418;
     pub mod a2709;
     pub mod a2945;
+    pub mod a2976;
     pub mod a3139;
     pub mod utils;
 }
