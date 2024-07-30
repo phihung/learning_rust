@@ -41,10 +41,12 @@ pub mod leetcode {
     pub mod a1307;
     pub mod a1334_distance;
     pub mod a1380;
+    pub mod a1395;
     pub mod a1402;
     pub mod a1458;
     pub mod a1503;
     pub mod a1605;
+    pub mod a1653;
     pub mod a2045;
     pub mod a2096;
     pub mod a2191;
