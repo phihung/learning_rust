@@ -26,14 +26,7 @@ pub struct Solution {}
 
 #[test]
 fn test_solution() {
-    basic_test_cases(Solution::is_palindrome);
-}
-
-#[cfg(test)]
-fn basic_test_cases<F>(func: F)
-where
-    F: Fn(i32) -> bool,
-{
+    let func = Solution::is_palindrome;
     assert!(func(121));
     assert!(func(11));
     assert!(func(11211));

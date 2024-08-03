@@ -1,5 +1,5 @@
 // https://leetcode.com/problems/build-a-matrix-with-conditions/description
-use std::collections::HashSet;
+use std::collections::VecDeque;
 
 // 100%, 100%
 impl Solution {
@@ -24,11 +24,11 @@ impl Solution {
     }
 
     fn find_permutation(k: usize, conds: &Vec<Vec<i32>>) -> Option<Vec<usize>> {
-        let adj_list: Vec<HashSet<usize>> = Self::build_graph(k, conds);
-        Self::topological_sort(&adj_list).map(Self::value_to_index)
+        let adj_list = Self::build_graph(k, conds);
+        Self::topological_sort(&adj_list).map(Self::invert)
     }
 
-    fn value_to_index(i2v: Vec<usize>) -> Vec<usize> {
+    fn invert(i2v: Vec<usize>) -> Vec<usize> {
         let mut v2i = vec![0; i2v.len()];
         for (pos, value) in i2v.into_iter().enumerate() {
             v2i[value] = pos;
@@ -37,43 +37,76 @@ impl Solution {
     }
 
     // Kahn's algorithm
-    fn topological_sort(adj_list: &Vec<HashSet<usize>>) -> Option<Vec<usize>> {
+    fn topological_sort(adj_list: &Vec<Vec<usize>>) -> Option<Vec<usize>> {
         let n_nodes = adj_list.len();
-        let mut incomming_counts: Vec<i32> = vec![0; n_nodes];
+        let mut indegre: Vec<i32> = vec![0; n_nodes];
         for outs in adj_list {
             for &o in outs {
-                incomming_counts[o] += 1;
+                indegre[o] += 1;
             }
         }
+        let mut queue = VecDeque::with_capacity(n_nodes);
         let mut sorted = Vec::with_capacity(n_nodes);
-        let mut nodes: Vec<_> = (0..n_nodes).collect();
 
-        while nodes.len() > 0 {
-            let node_with_no_incoming: HashSet<_> = nodes
-                .iter()
-                .filter(|&node| incomming_counts[*node] == 0)
-                .map(|x| x.to_owned())
-                .collect();
-            if node_with_no_incoming.is_empty() {
-                // circular
-                return None;
+        for (node, &cnt) in indegre.iter().enumerate() {
+            if cnt == 0 {
+                queue.push_back(node);
             }
-            for &node in &node_with_no_incoming {
-                sorted.push(node);
-                for &o in &adj_list[node] {
-                    incomming_counts[o] -= 1;
+        }
+
+        while let Some(node) = queue.pop_front() {
+            sorted.push(node);
+            for &v in &adj_list[node] {
+                indegre[v] -= 1;
+                if indegre[v] == 0 {
+                    queue.push_back(v);
                 }
             }
-            nodes.retain(|x| !node_with_no_incoming.contains(x));
         }
-        Some(sorted)
+        if sorted.len() < n_nodes {
+            None
+        } else {
+            Some(sorted)
+        }
     }
 
-    fn build_graph(k: usize, conds: &Vec<Vec<i32>>) -> Vec<HashSet<usize>> {
-        let mut adj_list = vec![HashSet::new(); k];
+    // fn topological_sort(adj_list: &Vec<HashSet<usize>>) -> Option<Vec<usize>> {
+    //     let n_nodes = adj_list.len();
+    //     let mut incomming_counts: Vec<i32> = vec![0; n_nodes];
+    //     for outs in adj_list {
+    //         for &o in outs {
+    //             incomming_counts[o] += 1;
+    //         }
+    //     }
+    //     let mut sorted = Vec::with_capacity(n_nodes);
+    //     let mut nodes: Vec<_> = (0..n_nodes).collect();
+
+    //     while nodes.len() > 0 {
+    //         let node_with_no_incoming: HashSet<_> = nodes
+    //             .iter()
+    //             .filter(|&node| incomming_counts[*node] == 0)
+    //             .map(|x| x.to_owned())
+    //             .collect();
+    //         if node_with_no_incoming.is_empty() {
+    //             // circular
+    //             return None;
+    //         }
+    //         for &node in &node_with_no_incoming {
+    //             sorted.push(node);
+    //             for &o in &adj_list[node] {
+    //                 incomming_counts[o] -= 1;
+    //             }
+    //         }
+    //         nodes.retain(|x| !node_with_no_incoming.contains(x));
+    //     }
+    //     Some(sorted)
+    // }
+
+    fn build_graph(k: usize, conds: &Vec<Vec<i32>>) -> Vec<Vec<usize>> {
+        let mut adj_list = vec![Vec::new(); k];
         for arc in conds {
             let (fr, to) = (arc[0] as usize, arc[1] as usize);
-            adj_list[fr - 1].insert(to - 1);
+            adj_list[fr - 1].push(to - 1);
         }
         adj_list
     }

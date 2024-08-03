@@ -3,39 +3,33 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+
 impl Solution {
-    pub fn create_binary_tree(descriptions: Vec<Vec<i32>>) -> Option<Rc<RefCell<TreeNode>>> {
-        let mut val_to_node: HashMap<i32, Rc<RefCell<TreeNode>>> = HashMap::new();
-        let mut get_or_create = |val| match val_to_node.get(&val) {
-            Some(node) => node.clone(),
-            None => {
+    pub fn create_binary_tree(mut descriptions: Vec<Vec<i32>>) -> Option<Rc<RefCell<TreeNode>>> {
+        let mut val_to_node = HashMap::new();
+        let mut get_or_create = |val, has_parent| {
+            let e = val_to_node.entry(val).or_insert_with(|| {
                 let node = Rc::new(RefCell::new(TreeNode::new(val)));
-                val_to_node.insert(val, node.clone());
-                node
-            }
+                (node, has_parent)
+            });
+            e.1 |= has_parent;
+            e.0.clone()
         };
 
-        for desc in &descriptions {
-            if let [v_parent, v_child, is_left] = desc[..] {
-                let n_parent = get_or_create(v_parent);
-                let n_child = get_or_create(v_child);
-                if is_left == 1 {
-                    n_parent.borrow_mut().left = Some(n_child);
-                } else {
-                    n_parent.borrow_mut().right = Some(n_child);
-                }
-            } else {
-                unreachable!()
+        while let Some(&[v_parent, v_child, is_left]) = descriptions.pop().as_deref() {
+            let n_parent = get_or_create(v_parent, false);
+            let n_child = get_or_create(v_child, true);
+            match is_left {
+                1 => n_parent.borrow_mut().left = Some(n_child),
+                _ => n_parent.borrow_mut().right = Some(n_child),
             }
         }
 
-        for desc in &descriptions {
-            if let [_, v_child, _] = desc[..] {
-                val_to_node.remove(&v_child);
-            }
-        }
-
-        Some(val_to_node.values().next().unwrap().clone())
+        // faster than val_to_node.values().into_iter()....
+        val_to_node
+            .into_iter()
+            .find(|(_, (_, has_parent))| !*has_parent)
+            .map(|(_, (node, _))| node)
     }
 }
 

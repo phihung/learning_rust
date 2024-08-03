@@ -1,29 +1,15 @@
 // https://leetcode.com/problems/merge-k-sorted-lists/description/
-// Definition for singly-linked list.
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ListNode {
-    pub val: i32,
-    pub next: Option<Box<ListNode>>,
-}
-
-impl ListNode {
-    #[inline]
-    fn new(val: i32) -> Self {
-        ListNode { next: None, val }
-    }
-}
-pub struct Solution {}
 
 use std::{cmp::Reverse, collections::BinaryHeap};
 
 impl Solution {
     pub fn merge_k_lists(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
-        merge_k_lists_2(lists)
+        flatten_and_sort(lists)
     }
 }
 
 // Binary Heap
-pub fn merge_k_lists_1(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
+pub fn use_binary_heap(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
     let mut lists = lists;
     let mut mins = BinaryHeap::with_capacity(lists.len());
 
@@ -49,9 +35,10 @@ pub fn merge_k_lists_1(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode
 }
 
 // Flatten and sort
-fn merge_k_lists_2(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
+fn flatten_and_sort(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
     let mut lists = lists;
-    let mut flatlist = Vec::with_capacity(lists.len());
+    let cnt = lists.iter().map(count).sum();
+    let mut flatlist = Vec::with_capacity(cnt);
     for l in lists.iter_mut() {
         while let Some(x) = l {
             flatlist.push(x.val);
@@ -59,20 +46,32 @@ fn merge_k_lists_2(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
         }
     }
 
-    flatlist.sort();
+    flatlist.sort_unstable();
     create_list(&flatlist)
+}
+
+fn count(mut l: &Option<Box<ListNode>>) -> usize {
+    let mut cnt = 0;
+    while let Some(n) = l {
+        cnt += 1;
+        l = &n.next;
+    }
+    cnt
 }
 
 fn create_list(arr: &[i32]) -> Option<Box<ListNode>> {
     let mut head = None;
     let mut tail = &mut head;
     for &v in arr {
-        let b = Box::new(ListNode::new(v));
-        *tail = Some(b);
+        *tail = Some(Box::new(ListNode::new(v)));
         tail = &mut tail.as_mut().unwrap().next;
     }
     head
 }
+
+use super::utils::ListNode;
+
+pub struct Solution {}
 
 #[test]
 fn test_solution() {
@@ -80,11 +79,11 @@ fn test_solution() {
     let b = create_list(&[1, 3, 4]);
     let c = create_list(&[2, 6]);
     assert_eq!(
-        merge_k_lists_2(vec![a.clone(), b.clone(), c.clone()]),
+        flatten_and_sort(vec![a.clone(), b.clone(), c.clone()]),
         create_list(&[1, 1, 2, 3, 4, 4, 5, 6])
     );
     assert_eq!(
-        merge_k_lists_1(vec![a, b, c]),
+        use_binary_heap(vec![a, b, c]),
         create_list(&[1, 1, 2, 3, 4, 4, 5, 6])
     );
 }
