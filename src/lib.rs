@@ -39,6 +39,7 @@ pub mod leetcode {
     pub mod a0443;
     pub mod a0726;
     pub mod a0912_sorting;
+    pub mod a1004;
     pub mod a1105;
     pub mod a1110;
     pub mod a1190;
@@ -50,6 +51,7 @@ pub mod leetcode {
     pub mod a1402;
     pub mod a1458;
     pub mod a1503;
+    pub mod a1508;
     pub mod a1605;
     pub mod a1653;
     pub mod a2045;
