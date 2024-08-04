@@ -205,6 +205,7 @@ fn benchmark(b: &mut test::Bencher) {
     });
 }
 
+#[cfg(test)]
 pub fn get_test_data() -> Vec<(String, String, bool)> {
     [
         ("aab", "c*a*b", true),
