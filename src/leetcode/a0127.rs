@@ -5,44 +5,34 @@ use std::collections::{HashMap, VecDeque};
 // https://leetcode.com/problems/word-ladder/solutions/5508384/clean-dijkstra-graph-search-100
 // 100%
 impl Solution {
-    pub fn ladder_length(begin_word: String, end_word: String, word_list: Vec<String>) -> i32 {
+    pub fn ladder_length(begin_word: String, end_word: String, mut word_list: Vec<String>) -> i32 {
         let n = word_list.len();
         let i_end = match word_list.iter().position(|w| *w == end_word) {
             None => return 0,
             Some(x) => x,
         };
 
-        let mut word_list = word_list;
         word_list.push(begin_word);
-        let neighbors = Self::build_graph(&word_list);
-
-        return if let Some(dist) = Self::dijkstra(n + 1, &neighbors, n, i_end) {
-            return dist as i32 + 1;
-        } else {
-            0
-        };
+        let neighbors = Self::build_graph(word_list);
+        return Self::dijkstra(n + 1, &neighbors, n, i_end).map_or(0, |d| d + 1) as i32;
     }
 
-    fn build_graph(word_list: &[String]) -> Vec<Vec<usize>> {
+    fn build_graph(word_list: Vec<String>) -> Vec<Vec<usize>> {
         let n = word_list.len();
         let mut m: HashMap<i64, Vec<usize>> = HashMap::with_capacity(n * word_list[0].len());
 
         // group words by (n-1) characters ({ "h_t": ["hot", "dog", ...]})
-        for (i, w) in word_list.iter().enumerate() {
+        for (i, w) in word_list.into_iter().enumerate() {
             for j in 0..w.len() {
-                let s_without_j = Self::to_int(w, j);
-                if let Some(ref mut arr) = m.get_mut(&s_without_j) {
-                    arr.push(i);
-                } else {
-                    m.insert(s_without_j, vec![i]);
-                };
+                let s_without_j = Self::to_int(&w, j);
+                m.entry(s_without_j).or_insert(vec![]).push(i);
             }
         }
 
         let mut neighbors = vec![vec![]; n + 1];
-        for v in m.values() {
-            for &i in v {
-                for &j in v {
+        for (_, v) in m {
+            for &i in &v {
+                for &j in &v {
                     if i != j {
                         neighbors[i].push(j);
                     }
@@ -71,23 +61,20 @@ impl Solution {
         start: usize,
         end: usize,
     ) -> Option<usize> {
-        let mut visited = vec![false; n_nodes];
         let mut distances = vec![u8::MAX; n_nodes];
         let mut queue = VecDeque::new();
         queue.push_back(start);
         distances[start] = 0;
-        visited[start] = true;
         while let Some(idx) = queue.pop_front() {
             let dist = distances[idx];
             for &neighbor in &neighbors[idx] {
-                if !visited[neighbor] {
-                    let v = &mut distances[neighbor];
+                let v = &mut distances[neighbor];
+                if *v == u8::MAX {
                     *v = (dist + 1).min(*v);
                     if neighbor == end {
                         return Some(*v as usize);
                     }
                     queue.push_back(neighbor);
-                    visited[neighbor] = true;
                 }
             }
         }
