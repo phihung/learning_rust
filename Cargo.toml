@@ -8,4 +8,5 @@ build = "build.rs"
 # unused = "allow"
 
 [dependencies]
+rand = "0.8.5"
 serde_json = "1.0.120"
