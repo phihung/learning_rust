@@ -58,12 +58,14 @@ def get_submission_detail(submission_id):
     return r.json()["data"]["submissionDetails"]
 
 
-def get_data():
+def get_data(outputs):
     solved = get_solved_questions()
     solved = {x["titleSlug"]: x for x in solved}
+    procceded = set([x["filepath"] for x in outputs])
 
-    outputs = []
     for fn in tqdm.tqdm(list(glob.glob("src/leetcode/*.rs"))):
+        if fn in procceded:
+            continue
         if ls := re.findall("a(\d\d\d\d)", fn):
             question_id = ls[0]
         else:
@@ -162,8 +164,7 @@ def update_readme(table):
 
 
 if __name__ == "__main__":
-    # outputs = json.load(open("data/leetcode.json"))
-    # outputs = sorted(outputs, key=lambda x: -int(x["timestamp"]))
-    outputs = get_data()
+    outputs = json.load(open("data/leetcode.json"))
+    outputs = get_data(outputs)
     Path("data/leetcode.json").write_text(json.dumps(outputs))
     update_readme(to_table(outputs))

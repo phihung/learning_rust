@@ -1,3 +1,5 @@
+// https://leetcode.com/problems/minimum-number-of-k-consecutive-bit-flips/description/
+
 impl Solution {
     // O(N)
     pub fn min_k_bit_flips(mut nums: Vec<i32>, k: i32) -> i32 {
