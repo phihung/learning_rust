@@ -1,4 +1,4 @@
-# Learning Rust by doing programming challenges
+# Learning Rust Through Programming Challenges
 
 ```bash
 cargo test --lib
@@ -8,6 +8,8 @@ python update_result.py
 
 | Problem                                                                                                                                                                                   | Difficulty   | Time   | Top                                     | Memory   | Top   | Code                                   |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|--------|-----------------------------------------|----------|-------|----------------------------------------|
+| [most-stones-removed-with-same-row-or-column](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/)                                                                 | Medium       | 0 ms   | <span style="color:green;">100 %</span> | 2.4 MB   | 8 %   | [Code](src/leetcode/a0947.rs)          |
+| [count-sub-islands](https://leetcode.com/problems/count-sub-islands/)                                                                                                                     | Medium       | 34 ms  | <span style="color:green;"> 93 %</span> | 6.6 MB   | 73 %  | [Code](src/leetcode/a1905.rs)          |
 | [find-the-closest-palindrome](https://leetcode.com/problems/find-the-closest-palindrome/)                                                                                                 | Hard         | 0 ms   | <span style="color:green;">100 %</span> | 2.1 MB   | 67 %  | [Code](src/leetcode/a0564.rs)          |
 | [fraction-addition-and-subtraction](https://leetcode.com/problems/fraction-addition-and-subtraction/)                                                                                     | Medium       | 0 ms   | <span style="color:green;">100 %</span> | 2.1 MB   | 100 % | [Code](src/leetcode/a0592.rs)          |
 | [divide-nodes-into-the-maximum-number-of-groups](https://leetcode.com/problems/divide-nodes-into-the-maximum-number-of-groups/)                                                           | Hard         | 58 ms  | 75 %                                    | 2.9 MB   | 50 %  | [Code](src/leetcode/a2493.rs)          |

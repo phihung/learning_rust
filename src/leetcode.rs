@@ -47,6 +47,7 @@ pub mod a0726;
 pub mod a0840;
 pub mod a0885;
 pub mod a0912_sorting;
+pub mod a0947;
 pub mod a0959;
 pub mod a0995;
 pub mod a1004;

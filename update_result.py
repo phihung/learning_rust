@@ -144,10 +144,9 @@ def to_table(outputs):
     return tabulate.tabulate(table, headers, tablefmt="github")
 
 
-# Learning Rust by doing programming challenges
 
 README = """\
-# Learning Rust by doing programming challenges
+# Learning Rust Through Programming Challenges
 
 ```bash
 cargo test --lib
