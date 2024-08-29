@@ -64,7 +64,7 @@ impl Solution {
 pub struct Solution;
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

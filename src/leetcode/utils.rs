@@ -71,25 +71,78 @@ impl ListNode {
     }
 }
 
-// [0..n].pow(k)
-pub fn carterian<F>(n: i32, k: usize, func: &mut F)
-where
-    F: FnMut(&[i32]) -> bool,
-{
-    let mut value = vec![0; k];
-    value[k - 1] = -1;
-    for _ in 0..n.pow(k as u32) {
-        let mut j = k - 1;
-        loop {
-            value[j] += 1;
-            if value[j] < n {
-                break;
-            }
-            value[j] = 0;
-            j -= 1;
+#[macro_export]
+macro_rules! to_owned {
+    ($x:expr) => {
+        $crate::leetcode::utils::DeepToOwned::deep_to_owned(&$x)
+    };
+}
+
+pub trait DeepToOwned {
+    type Owned;
+    fn deep_to_owned(&self) -> Self::Owned;
+}
+
+macro_rules! impl_vec_deep_to_owned {
+    () => {
+        type Owned = Vec<T::Owned>;
+
+        fn deep_to_owned(&self) -> Self::Owned {
+            self.iter().map(|y| y.deep_to_owned()).collect()
         }
-        if !func(&value) {
-            break;
-        }
+    };
+}
+
+impl DeepToOwned for String {
+    type Owned = String;
+
+    fn deep_to_owned(&self) -> Self::Owned {
+        self.clone()
     }
+}
+
+impl DeepToOwned for &str {
+    type Owned = String;
+
+    fn deep_to_owned(&self) -> Self::Owned {
+        self.to_string()
+    }
+}
+
+pub trait Numeric {}
+impl Numeric for f64 {}
+impl Numeric for f32 {}
+impl Numeric for i64 {}
+impl Numeric for i32 {}
+impl Numeric for i16 {}
+impl Numeric for i8 {}
+impl Numeric for isize {}
+impl Numeric for u64 {}
+impl Numeric for u32 {}
+impl Numeric for u16 {}
+impl Numeric for u8 {}
+impl Numeric for usize {}
+
+impl<T: Numeric + Copy> DeepToOwned for T {
+    type Owned = T;
+
+    fn deep_to_owned(&self) -> Self::Owned {
+        *self
+    }
+}
+
+impl<T: DeepToOwned> DeepToOwned for Vec<T> {
+    impl_vec_deep_to_owned!();
+}
+
+impl<T: DeepToOwned> DeepToOwned for &[T] {
+    impl_vec_deep_to_owned!();
+}
+
+impl<T: DeepToOwned, const N: usize> DeepToOwned for &[T; N] {
+    impl_vec_deep_to_owned!();
+}
+
+impl<T: DeepToOwned, const N: usize> DeepToOwned for [T; N] {
+    impl_vec_deep_to_owned!();
 }
